@@ -7,8 +7,10 @@
 
 # Ignore all files named .DS_Store
 **/.DS_Store
+.DS_Store
 
 !Core/
 Core/*
 !Core/Src/
 !Core/Inc/
+.DS_Store
