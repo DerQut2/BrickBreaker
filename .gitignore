@@ -1,32 +1,14 @@
-# Prerequisites
-*.d
+# Blocklist files/folders in same directory as the .gitignore file
+/*
 
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
+# Includelist some files
+!.gitignore
+!README.md
 
-# Precompiled Headers
-*.gch
-*.pch
+# Ignore all files named .DS_Store
+**/.DS_Store
 
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
-
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
-
-# Executables
-*.exe
-*.out
-*.app
+!Core/
+Core/*
+!Core/Src/
+!Core/Inc/
