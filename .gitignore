@@ -4,6 +4,7 @@
 # Includelist some files
 !.gitignore
 !README.md
+!BrickBreaker.ioc
 
 # Ignore all files named .DS_Store
 **/.DS_Store
