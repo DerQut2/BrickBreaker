@@ -22,8 +22,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "ssd1306.h"
+#include "fonts.h"
 #include "string.h"
-#include "stdio.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -91,10 +91,10 @@ int main(void)
   MX_GPIO_Init();
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
-  SSD1306_Init ();
-  SSD1306_GotoXY(0, 64);
-  SSD1306_Puts("Jebac army", &Font_16x26, SSD1306_COLOR_WHITE);
-  SSD1306_UpdateScreen();
+  ssd1306_Init(&hi2c1);
+  ssd1306_SetCursor(0, 36);
+  ssd1306_WriteString("jebac army!!", Font_11x18, White);
+  ssd1306_UpdateScreen(&hi2c1);
   /* USER CODE END 2 */
 
   /* Infinite loop */
