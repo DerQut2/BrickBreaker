@@ -25,6 +25,7 @@
 #include "ssd1306.h"
 #include "fonts.h"
 #include "string.h"
+#include "brickbreakergui.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -135,8 +136,10 @@ int main(void)
     /* USER CODE BEGIN 3 */
 	  HAL_ADC_Start_IT(&hadc1);
 
-	  ssd1306_SetCursor(adc_value/32, 32);
 	  ssd1306_Fill(Black);
+
+	  blit_palette(&hi2c1, (uint8_t) (adc_value/64), 10);
+
 	  ssd1306_UpdateScreen(&hi2c1);
 	  HAL_Delay(10);
 
