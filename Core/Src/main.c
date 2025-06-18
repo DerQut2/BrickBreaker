@@ -355,6 +355,10 @@ void calculate_ball_speed() {
 	if (((ball_y_pos > SSD1306_HEIGHT-2 && ball_y_speed > 0) || (ball_y_pos < 21 && ball_y_speed < 0 && (ball_x_pos > player_pos-12 && ball_x_pos < player_pos+12))) && time_since_last_y_bounce > 3) {
 		ball_y_speed = ball_y_speed * (-1);
 		time_since_last_y_bounce = 0;
+
+		if (ball_y_pos < 21) {
+			ball_x_speed = (ball_x_pos - (uint8_t) player_pos)/2;
+		}
 	}
 }
 
