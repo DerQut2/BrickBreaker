@@ -49,16 +49,16 @@ ADC_HandleTypeDef hadc1;
 I2C_HandleTypeDef hi2c1;
 
 /* USER CODE BEGIN PV */
-volatile uint16_t player_pos = 0;
+volatile uint8_t player_pos = 0;
 
 volatile uint8_t ball_x_pos = 0;
 volatile uint8_t ball_y_pos = 60;
 
 volatile int8_t ball_x_speed = 4;
-volatile int8_t ball_y_speed = 1;
+volatile int8_t ball_y_speed = -1;
 
-volatile uint8_t time_since_last_x_bounce = 0xFF;
-volatile uint8_t time_since_last_y_bounce = 0xFF;
+volatile uint8_t time_since_last_x_bounce = 10;
+volatile uint8_t time_since_last_y_bounce = 10;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -307,12 +307,12 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 
 
 void calculate_ball_speed() {
-	if (((ball_x_pos > SSD1306_WIDTH-2 && ball_x_speed > 0) || (ball_x_pos < 2 && ball_x_speed < 0)) && time_since_last_x_bounce > 10) {
+	if (((ball_x_pos > SSD1306_WIDTH-2 && ball_x_speed > 0) || (ball_x_pos < 2 && ball_x_speed < 0)) && time_since_last_x_bounce > 3) {
 		ball_x_speed = ball_x_speed * (-1);
 		time_since_last_x_bounce = 0;
 	}
 
-	if (((ball_y_pos > SSD1306_HEIGHT-2 && ball_y_speed > 0) || (ball_y_pos < 21 && ball_y_speed < 0 && (ball_x_pos > player_pos-12 && ball_x_pos < player_pos+12))) && time_since_last_y_bounce > 10) {
+	if (((ball_y_pos > SSD1306_HEIGHT-2 && ball_y_speed > 0) || (ball_y_pos < 21 && ball_y_speed < 0 && (ball_x_pos > player_pos-12 && ball_x_pos < player_pos+12))) && time_since_last_y_bounce > 3) {
 		ball_y_speed = ball_y_speed * (-1);
 		time_since_last_y_bounce = 0;
 	}
