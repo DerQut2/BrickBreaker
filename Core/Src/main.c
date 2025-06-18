@@ -49,7 +49,16 @@ ADC_HandleTypeDef hadc1;
 I2C_HandleTypeDef hi2c1;
 
 /* USER CODE BEGIN PV */
-volatile uint16_t adc_value = 0;
+volatile uint16_t player_pos = 0;
+
+volatile uint8_t ball_x_pos = 0;
+volatile uint8_t ball_y_pos = 60;
+
+volatile uint8_t ball_x_speed = 4;
+volatile uint8_t ball_y_speed = 1;
+
+volatile uint8_t time_since_last_x_bounce = 0xFF;
+volatile uint8_t time_since_last_y_bounce = 0xFF;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -98,33 +107,17 @@ int main(void)
   /* USER CODE BEGIN 2 */
   if (ssd1306_Init(&hi2c1) != 0) {
       Error_Handler();
-    }
-    HAL_Delay(1000);
+  }
+  HAL_Delay(10);
 
-    ssd1306_Fill(Black);
-    ssd1306_UpdateScreen(&hi2c1);
 
-    HAL_Delay(1000);
+  blit_splash_screen(&hi2c1);
+  ssd1306_UpdateScreen(&hi2c1);
 
-    // Write data to local screenbuffer
-    ssd1306_SetCursor(0, 0);
-    ssd1306_WriteString("ssd1306", Font_11x18, White);
+  // Start ADC
+  HAL_ADC_Start_IT(&hadc1);
 
-    ssd1306_SetCursor(0, 36);
-    ssd1306_WriteString("4ilo", Font_11x18, White);
-
-    // Draw rectangle on screen
-    for (uint8_t i=0; i<28; i++) {
-        for (uint8_t j=0; j<64; j++) {
-            ssd1306_DrawPixel(100+i, 0+j, White);
-        }
-    }
-
-    // Copy all data from local screenbuffer to the screen
-    ssd1306_UpdateScreen(&hi2c1);
-
-    // Start ADC
-    HAL_ADC_Start_IT(&hadc1);
+  HAL_Delay(2000);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -138,10 +131,20 @@ int main(void)
 
 	  ssd1306_Fill(Black);
 
-	  blit_palette(&hi2c1, (uint8_t) (adc_value/64), 10);
+	  blit_palette(&hi2c1, (uint8_t) (player_pos), 12);
+	  blit_ball(&hi2c1, (uint8_t) ball_x_pos, (uint8_t) ball_y_pos);
 
 	  ssd1306_UpdateScreen(&hi2c1);
 	  HAL_Delay(10);
+
+	  calculate_ball_speed();
+	  kill_check();
+
+	  ball_x_pos += ball_x_speed;
+	  ball_y_pos += ball_y_speed;
+
+	  time_since_last_x_bounce++;
+	  time_since_last_y_bounce++;
 
   }
   /* USER CODE END 3 */
@@ -298,7 +301,25 @@ static void MX_GPIO_Init(void)
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 {
     // Read & Update The ADC Result
-    adc_value = HAL_ADC_GetValue(&hadc1);
+    player_pos = (uint8_t) (HAL_ADC_GetValue(&hadc1)/32);
+}
+
+
+void calculate_ball_speed() {
+	if (((ball_x_pos > SSD1306_WIDTH-2 && ball_x_speed > 0) || (ball_x_pos < 2 && ball_x_speed < 0)) && time_since_last_x_bounce > 10) {
+		ball_x_speed = ball_x_speed * (-1);
+		time_since_last_x_bounce = 0;
+	}
+
+	if (((ball_y_pos > SSD1306_HEIGHT-2 && ball_y_speed > 0) || (ball_y_pos < 20 && ball_x_speed < 0 && (ball_x_pos > player_pos-16 && ball_x_pos < player_pos+16))) && time_since_last_y_bounce > 10) {
+		ball_y_speed = ball_y_speed * (-1);
+		time_since_last_y_bounce = 0;
+	}
+}
+
+void kill_check() {
+	if (ball_y_pos < 12 && !(ball_x_pos > player_pos-16 && ball_x_pos < player_pos+16))
+		ball_y_pos = 60;
 }
 /* USER CODE END 4 */
 

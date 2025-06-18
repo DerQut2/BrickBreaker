@@ -53,7 +53,8 @@ extern "C" {
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
-
+void calculate_ball_speed();
+void kill_check();
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
