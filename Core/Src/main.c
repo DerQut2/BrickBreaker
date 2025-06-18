@@ -113,11 +113,11 @@ int main(void)
   }
   HAL_Delay(10);
 
-
-  blit_splash_screen(&hi2c1);
-  blit_splash_screen(&hi2c2);
-
+  blit_main_splash_screen();
   ssd1306_UpdateScreen(&hi2c1);
+
+
+  blit_secondary_splash_screen();
   ssd1306_UpdateScreen(&hi2c2);
 
   // Start ADC

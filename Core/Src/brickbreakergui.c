@@ -27,6 +27,18 @@ void blit_ball(I2C_HandleTypeDef *hi2c, uint8_t x_cord, uint8_t y_cord) {
 }
 
 
-void blit_splash_screen(I2C_HandleTypeDef *hi2c) {
+void blit_main_splash_screen() {
 	ssd1306_Fill(White);
+}
+
+void blit_secondary_splash_screen() {
+	ssd1306_Fill(White);
+	ssd1306_SetCursor(25, 0);
+	ssd1306_WriteString("Marcel", Font_11x18, Black);
+
+	ssd1306_SetCursor(9, 20);
+	ssd1306_WriteString("Cholodecki", Font_11x18, Black);
+
+	ssd1306_SetCursor(43, 50);
+	ssd1306_WriteString("275818", Font_7x10, Black);
 }
