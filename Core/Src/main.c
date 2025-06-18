@@ -134,6 +134,15 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 
+	  ball_x_pos += ball_x_speed;
+	  ball_y_pos += ball_y_speed;
+
+	  time_since_last_x_bounce++;
+	  time_since_last_y_bounce++;
+
+	  calculate_ball_speed();
+	  kill_check();
+
 	  ssd1306_Fill(Black);
 
 	  blit_palette(&hi2c1, (uint8_t) (player_pos), 12);
@@ -143,15 +152,6 @@ int main(void)
 
 	  HAL_ADC_Start_IT(&hadc1);
 	  HAL_Delay(10);
-
-	  calculate_ball_speed();
-	  kill_check();
-
-	  ball_x_pos += ball_x_speed;
-	  ball_y_pos += ball_y_speed;
-
-	  time_since_last_x_bounce++;
-	  time_since_last_y_bounce++;
 
   }
   /* USER CODE END 3 */
