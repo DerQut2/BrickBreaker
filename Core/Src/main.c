@@ -54,8 +54,8 @@ volatile uint16_t player_pos = 0;
 volatile uint8_t ball_x_pos = 0;
 volatile uint8_t ball_y_pos = 60;
 
-volatile uint8_t ball_x_speed = 4;
-volatile uint8_t ball_y_speed = 1;
+volatile int8_t ball_x_speed = 4;
+volatile int8_t ball_y_speed = 1;
 
 volatile uint8_t time_since_last_x_bounce = 0xFF;
 volatile uint8_t time_since_last_y_bounce = 0xFF;
@@ -127,7 +127,6 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  HAL_ADC_Start_IT(&hadc1);
 
 	  ssd1306_Fill(Black);
 
@@ -135,6 +134,8 @@ int main(void)
 	  blit_ball(&hi2c1, (uint8_t) ball_x_pos, (uint8_t) ball_y_pos);
 
 	  ssd1306_UpdateScreen(&hi2c1);
+
+	  HAL_ADC_Start_IT(&hadc1);
 	  HAL_Delay(10);
 
 	  calculate_ball_speed();
@@ -213,7 +214,7 @@ static void MX_ADC1_Init(void)
   */
   hadc1.Instance = ADC1;
   hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV4;
-  hadc1.Init.Resolution = ADC_RESOLUTION_12B;
+  hadc1.Init.Resolution = ADC_RESOLUTION_8B;
   hadc1.Init.ScanConvMode = DISABLE;
   hadc1.Init.ContinuousConvMode = ENABLE;
   hadc1.Init.DiscontinuousConvMode = DISABLE;
@@ -232,7 +233,7 @@ static void MX_ADC1_Init(void)
   */
   sConfig.Channel = ADC_CHANNEL_7;
   sConfig.Rank = 1;
-  sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
+  sConfig.SamplingTime = ADC_SAMPLETIME_56CYCLES;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
     Error_Handler();
@@ -301,7 +302,7 @@ static void MX_GPIO_Init(void)
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 {
     // Read & Update The ADC Result
-    player_pos = (uint8_t) (HAL_ADC_GetValue(&hadc1)/32);
+    player_pos = (uint8_t) (HAL_ADC_GetValue(&hadc1)/2);
 }
 
 
@@ -311,14 +312,14 @@ void calculate_ball_speed() {
 		time_since_last_x_bounce = 0;
 	}
 
-	if (((ball_y_pos > SSD1306_HEIGHT-2 && ball_y_speed > 0) || (ball_y_pos < 20 && ball_x_speed < 0 && (ball_x_pos > player_pos-16 && ball_x_pos < player_pos+16))) && time_since_last_y_bounce > 10) {
+	if (((ball_y_pos > SSD1306_HEIGHT-2 && ball_y_speed > 0) || (ball_y_pos < 21 && ball_y_speed < 0 && (ball_x_pos > player_pos-12 && ball_x_pos < player_pos+12))) && time_since_last_y_bounce > 10) {
 		ball_y_speed = ball_y_speed * (-1);
 		time_since_last_y_bounce = 0;
 	}
 }
 
 void kill_check() {
-	if (ball_y_pos < 12 && !(ball_x_pos > player_pos-16 && ball_x_pos < player_pos+16))
+	if (ball_y_pos < 19 && !(ball_x_pos > player_pos-16 && ball_x_pos < player_pos+16))
 		ball_y_pos = 60;
 }
 /* USER CODE END 4 */
