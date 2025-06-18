@@ -111,7 +111,7 @@ int main(void)
   if (ssd1306_Init(&hi2c1) != 0 || ssd1306_Init(&hi2c2) != 0) {
       Error_Handler();
   }
-  HAL_Delay(10);
+  HAL_Delay(5);
 
   blit_main_splash_screen();
   ssd1306_UpdateScreen(&hi2c1);
@@ -347,24 +347,35 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 
 
 void calculate_ball_speed() {
-	if (((ball_x_pos > SSD1306_WIDTH-2 && ball_x_speed > 0) || (ball_x_pos < 2 && ball_x_speed < 0)) && time_since_last_x_bounce > 3) {
+	if (((ball_x_pos > SSD1306_WIDTH-4 && ball_x_speed > 0) || (ball_x_pos < 4 && ball_x_speed < 0)) && time_since_last_x_bounce > 5) {
 		ball_x_speed = ball_x_speed * (-1);
 		time_since_last_x_bounce = 0;
 	}
 
-	if (((ball_y_pos > SSD1306_HEIGHT-2 && ball_y_speed > 0) || (ball_y_pos < 21 && ball_y_speed < 0 && (ball_x_pos > player_pos-12 && ball_x_pos < player_pos+12))) && time_since_last_y_bounce > 3) {
+	if (((ball_y_pos > SSD1306_HEIGHT-4 && ball_y_speed > 0) || (ball_y_pos < 21 && ball_y_speed < 0 && (ball_x_pos > player_pos-12 && ball_x_pos < player_pos+12))) && time_since_last_y_bounce > 5) {
 		ball_y_speed = ball_y_speed * (-1);
 		time_since_last_y_bounce = 0;
 
 		if (ball_y_pos < 21) {
 			ball_x_speed = (ball_x_pos - (uint8_t) player_pos)/2;
+			if (ball_x_speed > 4)
+				ball_x_speed = 4;
+
+			if (ball_x_speed < 3)
+				ball_y_speed = 2;
+			else
+				ball_y_speed = 1;
 		}
 	}
 }
 
 void kill_check() {
-	if (ball_y_pos < 19 && !(ball_x_pos > player_pos-16 && ball_x_pos < player_pos+16))
+	if (ball_y_pos < 17 && !(ball_x_pos > player_pos-16 && ball_x_pos < player_pos+16)) {
 		ball_y_pos = 60;
+		ball_x_pos = (uint8_t) player_pos;
+		ball_x_speed = 0;
+		ball_y_speed = -1;
+	}
 }
 /* USER CODE END 4 */
 
