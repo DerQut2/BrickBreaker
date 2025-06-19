@@ -52,8 +52,8 @@ I2C_HandleTypeDef hi2c2;
 /* USER CODE BEGIN PV */
 volatile uint8_t player_pos = 0;
 
-volatile uint8_t ball_x_pos = 0;
-volatile uint8_t ball_y_pos = 32;
+volatile int16_t ball_x_pos = 0;
+volatile int16_t ball_y_pos = 32;
 
 volatile int8_t ball_x_speed = 0;
 volatile int8_t ball_y_speed = -1;
@@ -144,6 +144,18 @@ int main(void)
 
 	  ball_x_pos += ball_x_speed;
 	  ball_y_pos += ball_y_speed;
+
+	  if (ball_x_pos < 0)
+		  ball_x_pos = 0;
+
+	  if (ball_x_pos > SSD1306_WIDTH)
+		  ball_x_pos = SSD1306_WIDTH;
+
+	  if (ball_y_pos < 0)
+		  ball_y_pos = 0;
+
+	  if (ball_y_pos > SSD1306_HEIGHT)
+		  ball_y_pos = SSD1306_HEIGHT;
 
 	  time_since_last_x_bounce++;
 	  time_since_last_y_bounce++;
