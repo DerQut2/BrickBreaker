@@ -41,7 +41,7 @@ extern "C" {
 
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
-
+#define BRICK_COUNT 5
 /* USER CODE END EC */
 
 /* Exported macro ------------------------------------------------------------*/
@@ -55,6 +55,7 @@ void Error_Handler(void);
 /* USER CODE BEGIN EFP */
 void calculate_ball_speed();
 void kill_check();
+void brick_check();
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/

@@ -53,13 +53,17 @@ I2C_HandleTypeDef hi2c2;
 volatile uint8_t player_pos = 0;
 
 volatile uint8_t ball_x_pos = 0;
-volatile uint8_t ball_y_pos = 60;
+volatile uint8_t ball_y_pos = 32;
 
-volatile int8_t ball_x_speed = 4;
+volatile int8_t ball_x_speed = 0;
 volatile int8_t ball_y_speed = -1;
 
 volatile uint8_t time_since_last_x_bounce = 10;
 volatile uint8_t time_since_last_y_bounce = 10;
+
+volatile uint8_t time_since_last_brick_break = 10;
+
+uint8_t bricks[BRICK_COUNT];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -100,6 +104,8 @@ int main(void)
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
+  for (uint8_t i=0; i < BRICK_COUNT; i++)
+	  bricks[i] = 0xFF;
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
@@ -124,6 +130,8 @@ int main(void)
   HAL_ADC_Start_IT(&hadc1);
 
   HAL_Delay(2000);
+
+  ball_x_pos = player_pos;
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -140,13 +148,18 @@ int main(void)
 	  time_since_last_x_bounce++;
 	  time_since_last_y_bounce++;
 
+	  time_since_last_brick_break++;
+
 	  calculate_ball_speed();
+	  brick_check();
 	  kill_check();
 
 	  ssd1306_Fill(Black);
 
-	  blit_palette(&hi2c1, (uint8_t) (player_pos), 12);
-	  blit_ball(&hi2c1, ball_x_pos, ball_y_pos);
+	  blit_palette((uint8_t) (player_pos), 12);
+	  blit_ball(ball_x_pos, ball_y_pos);
+
+	  blit_bricks(bricks, BRICK_COUNT);
 
 	  ssd1306_UpdateScreen(&hi2c1);
 
@@ -370,11 +383,33 @@ void calculate_ball_speed() {
 }
 
 void kill_check() {
-	if (ball_y_pos < 17 && !(ball_x_pos > player_pos-16 && ball_x_pos < player_pos+16)) {
-		ball_y_pos = 60;
+	if ((ball_y_pos < 17 && !(ball_x_pos > player_pos-16 && ball_x_pos < player_pos+16)) || (ball_y_pos < 10)) {
+		ball_y_pos = 32;
 		ball_x_pos = player_pos;
 		ball_x_speed = 0;
 		ball_y_speed = -1;
+	}
+}
+
+void brick_check() {
+	for (uint8_t brick_row=0; brick_row<BRICK_COUNT; brick_row++) {
+		for (uint8_t brick=0; brick<8; brick++) {
+			if (bricks[brick_row] & (1 << brick)) {
+				if (ball_x_pos+2 > brick * BRICK_X_SIZE && ball_x_pos < (brick+1) * BRICK_X_SIZE+2) {
+					if (ball_y_pos-2 < SSD1306_HEIGHT - brick_row * BRICK_Y_SIZE && ball_y_pos+2 > SSD1306_HEIGHT - (brick_row+1) * BRICK_Y_SIZE) {
+						if (time_since_last_brick_break>2) {
+							bricks[brick_row] = bricks[brick_row] ^ (1<<brick);
+							time_since_last_brick_break = 0;
+
+							if (time_since_last_y_bounce > 2 && ball_y_speed > 0) {
+								time_since_last_y_bounce = 0;
+								ball_y_speed = ball_y_speed * (-1);
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 }
 /* USER CODE END 4 */
