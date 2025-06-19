@@ -357,7 +357,7 @@ void calculate_ball_speed() {
 		time_since_last_y_bounce = 0;
 
 		if (ball_y_pos < 21) {
-			ball_x_speed = (ball_x_pos - (uint8_t) player_pos)/2;
+			ball_x_speed = (ball_x_pos - player_pos)/2;
 			if (ball_x_speed > 4)
 				ball_x_speed = 4;
 
@@ -372,7 +372,7 @@ void calculate_ball_speed() {
 void kill_check() {
 	if (ball_y_pos < 17 && !(ball_x_pos > player_pos-16 && ball_x_pos < player_pos+16)) {
 		ball_y_pos = 60;
-		ball_x_pos = (uint8_t) player_pos;
+		ball_x_pos = player_pos;
 		ball_x_speed = 0;
 		ball_y_speed = -1;
 	}
