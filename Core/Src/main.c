@@ -176,7 +176,7 @@ int main(void)
 	  ssd1306_UpdateScreen(&hi2c1);
 
 	  HAL_ADC_Start_IT(&hadc1);
-	  HAL_Delay(10);
+	  HAL_Delay(100);
 
   }
   /* USER CODE END 3 */
@@ -409,7 +409,7 @@ void brick_check() {
 			if (bricks[brick_row] & (1 << brick)) {
 				if (ball_x_pos+2 > brick * BRICK_X_SIZE && ball_x_pos < (brick+1) * BRICK_X_SIZE+2) {
 					if (ball_y_pos-2 < SSD1306_HEIGHT - brick_row * BRICK_Y_SIZE && ball_y_pos+2 > SSD1306_HEIGHT - (brick_row+1) * BRICK_Y_SIZE) {
-						if (time_since_last_brick_break>2) {
+						if (time_since_last_brick_break>5 || (ball_y_speed < 0 && time_since_last_brick_break > 0)) {
 							bricks[brick_row] = bricks[brick_row] ^ (1<<brick);
 							time_since_last_brick_break = 0;
 
