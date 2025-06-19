@@ -176,7 +176,7 @@ int main(void)
 	  ssd1306_UpdateScreen(&hi2c1);
 
 	  HAL_ADC_Start_IT(&hadc1);
-	  HAL_Delay(100);
+	  HAL_Delay(10);
 
   }
   /* USER CODE END 3 */
