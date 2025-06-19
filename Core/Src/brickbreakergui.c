@@ -28,6 +28,9 @@ void blit_ball(uint8_t x_cord, uint8_t y_cord) {
 
 void blit_bricks(uint8_t bricks[], uint8_t brick_count) {
 	for (uint8_t i=0; i < brick_count; i++) {
+		if (!bricks[i])
+			continue;
+
 		for (uint8_t j=0; j<8; j++) {
 			if (bricks[i] & (1<<j)) {
 				blit_brick((uint8_t) BRICK_X_SIZE * j, SSD1306_HEIGHT - (uint8_t) BRICK_Y_SIZE * i);

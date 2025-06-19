@@ -405,6 +405,9 @@ void kill_check() {
 
 void brick_check() {
 	for (uint8_t brick_row=0; brick_row<BRICK_COUNT; brick_row++) {
+		if (!bricks[brick_row])
+			continue;
+
 		for (uint8_t brick=0; brick<8; brick++) {
 			if (bricks[brick_row] & (1 << brick)) {
 				if (ball_x_pos+2 > brick * BRICK_X_SIZE && ball_x_pos < (brick+1) * BRICK_X_SIZE+2) {
