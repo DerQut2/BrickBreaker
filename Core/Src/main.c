@@ -547,6 +547,9 @@ void win_check() {
 	ball_y_pos = 32;
 	ball_x_speed = 0;
 	ball_y_speed = -1;
+
+	// Reward the player
+	score += 100;
 }
 
 
