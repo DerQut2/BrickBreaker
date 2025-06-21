@@ -63,6 +63,9 @@ volatile uint8_t time_since_last_y_bounce = 10;
 
 volatile uint8_t time_since_last_brick_break = 10;
 
+volatile uint32_t score = 0;
+volatile float multiplier = 1.0f;
+
 uint8_t bricks[BRICK_COUNT];
 /* USER CODE END PV */
 
@@ -382,14 +385,14 @@ void calculate_ball_speed() {
 		time_since_last_y_bounce = 0;
 
 		if (ball_y_pos < 21) {
-			ball_x_speed = (ball_x_pos - player_pos)/2;
-			if (ball_x_speed > 4)
-				ball_x_speed = 4;
+			ball_x_speed = (uint8_t) ((ball_x_pos - player_pos)/2 * multiplier);
+			if (ball_x_speed > (uint8_t) (4 * multiplier))
+				ball_x_speed = (uint8_t) (4 * multiplier);
 
-			if (ball_x_speed < 3)
-				ball_y_speed = 2;
+			if (ball_x_speed < (uint8_t) (3*multiplier))
+				ball_y_speed = (uint8_t) (2*multiplier);
 			else
-				ball_y_speed = 1;
+				ball_y_speed = (uint8_t) multiplier;
 		}
 	}
 }
@@ -404,26 +407,46 @@ void kill_check() {
 }
 
 void brick_check() {
+
+	// Sweep all brick rows
 	for (uint8_t brick_row=0; brick_row<BRICK_COUNT; brick_row++) {
+
+		// Check if brick row contains any bricks
 		if (!bricks[brick_row])
 			continue;
 
+		// Sweep all bricks in a given row
 		for (uint8_t brick=0; brick<8; brick++) {
-			if (bricks[brick_row] & (1 << brick)) {
-				if (ball_x_pos+2 > brick * BRICK_X_SIZE && ball_x_pos < (brick+1) * BRICK_X_SIZE+2) {
-					if (ball_y_pos-2 < SSD1306_HEIGHT - brick_row * BRICK_Y_SIZE && ball_y_pos+2 > SSD1306_HEIGHT - (brick_row+1) * BRICK_Y_SIZE) {
-						if (time_since_last_brick_break>5 || (ball_y_speed < 0 && time_since_last_brick_break > 0)) {
-							bricks[brick_row] = bricks[brick_row] ^ (1<<brick);
-							time_since_last_brick_break = 0;
 
-							if (time_since_last_y_bounce > 2 && ball_y_speed > 0) {
-								time_since_last_y_bounce = 0;
-								ball_y_speed = ball_y_speed * (-1);
-							}
-						}
-					}
-				}
-			}
+			// Check if a given brick exists
+			if (!bricks[brick_row] & (1 << brick))
+				continue;
+
+			// Check if ball x position aligns with the brick
+			if (!(ball_x_pos+2 > brick * BRICK_X_SIZE && ball_x_pos < (brick+1) * BRICK_X_SIZE+2))
+				continue;
+
+			// Check if ball y position aligns with the brick
+			if (!(ball_y_pos-2 < SSD1306_HEIGHT - brick_row * BRICK_Y_SIZE && ball_y_pos+2 > SSD1306_HEIGHT - (brick_row+1) * BRICK_Y_SIZE))
+				continue;
+
+			// Check if the ball can break the brick (cool-down)
+			if (!(time_since_last_brick_break>5 || (ball_y_speed < 0 && time_since_last_brick_break > 0)))
+				continue;
+
+			// Remove the brick (XOR with 1 sets to 0- the given value was already asserted to be 1)
+			bricks[brick_row] = bricks[brick_row] ^ (1<<brick);
+
+			// Reset the cool-down
+			time_since_last_brick_break = 0;
+
+			// Check if the ball is not falling and can be made to fall
+			if (!(time_since_last_y_bounce > 2 && ball_y_speed > 0))
+				continue;
+
+			// Force the ball to start falling (trigger a y-bounce)
+			time_since_last_y_bounce = 0;
+			ball_y_speed = ball_y_speed * (-1);
 		}
 	}
 }
