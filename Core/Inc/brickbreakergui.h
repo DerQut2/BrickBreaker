@@ -24,5 +24,7 @@ void blit_bricks(uint8_t bricks[], uint8_t brick_count);
 
 void blit_brick(uint8_t x, uint8_t y);
 
+void blit_score(uint16_t score);
+
 
 #endif /* INC_BRICKBREAKERGUI_H_ */

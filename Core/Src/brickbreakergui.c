@@ -5,7 +5,7 @@
  *      Author: babel
  */
 
-
+#include <stdio.h>
 #include "brickbreakergui.h"
 
 void blit_palette(uint8_t x_cord, uint8_t y_cord) {
@@ -63,4 +63,11 @@ void blit_secondary_splash_screen() {
 
 	ssd1306_SetCursor(43, 50);
 	ssd1306_WriteString("275818", Font_7x10, Black);
+}
+
+void blit_score(uint16_t score) {
+	char buffer[8];
+	uint8_t characters = sprintf(buffer, "%d", score);
+	ssd1306_SetCursor(SSD1306_WIDTH - 16 * (characters+1), 32);
+	ssd1306_WriteString(buffer, Font_16x26, White);
 }

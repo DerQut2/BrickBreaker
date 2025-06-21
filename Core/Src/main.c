@@ -63,8 +63,10 @@ volatile uint8_t time_since_last_y_bounce = 10;
 
 volatile uint8_t time_since_last_brick_break = 10;
 
-volatile uint32_t score = 0;
+volatile uint16_t score = 0;
 volatile float multiplier = 0.5f;
+
+volatile uint8_t secondary_screen_changed = 0;
 
 uint8_t bricks[BRICK_COUNT];
 /* USER CODE END PV */
@@ -170,6 +172,7 @@ int main(void)
 	  brick_check();
 	  kill_check();
 
+	  // Main screen drawing
 	  ssd1306_Fill(Black);
 
 	  blit_palette((uint8_t) (player_pos), 12);
@@ -178,6 +181,14 @@ int main(void)
 	  blit_bricks(bricks, BRICK_COUNT);
 
 	  ssd1306_UpdateScreen(&hi2c1);
+
+	  // Secondary screen drawing
+	  if (secondary_screen_changed) {
+		  ssd1306_Fill(Black);
+		  blit_score(score);
+		  ssd1306_UpdateScreen(&hi2c2);
+		  secondary_screen_changed = 0;
+	  }
 
 	  HAL_ADC_Start_IT(&hadc1);
 	  HAL_Delay(10);
@@ -439,6 +450,10 @@ void brick_check() {
 
 			// Remove the brick (XOR with 1 sets to 0- the given value was already asserted to be 1)
 			bricks[brick_row] = bricks[brick_row] ^ (1<<brick);
+
+			// Increase score
+			score += BRICK_REWARD * multiplier;
+			secondary_screen_changed = 1;
 
 			// Reset the cool-down
 			time_since_last_brick_break = 0;
