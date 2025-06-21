@@ -49,6 +49,8 @@ ADC_HandleTypeDef hadc1;
 I2C_HandleTypeDef hi2c1;
 I2C_HandleTypeDef hi2c2;
 
+TIM_HandleTypeDef htim3;
+
 /* USER CODE BEGIN PV */
 volatile uint8_t player_pos = 0;
 
@@ -66,7 +68,7 @@ volatile uint8_t time_since_last_brick_break = 10;
 volatile uint16_t score = 0;
 volatile float multiplier = 0.5f;
 
-volatile uint8_t secondary_screen_changed = 0;
+volatile uint8_t secondary_screen_changed = 1;
 
 uint8_t bricks[BRICK_COUNT];
 /* USER CODE END PV */
@@ -77,6 +79,7 @@ static void MX_GPIO_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_I2C2_Init(void);
+static void MX_TIM3_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -119,6 +122,7 @@ int main(void)
   MX_I2C1_Init();
   MX_ADC1_Init();
   MX_I2C2_Init();
+  MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
   if (ssd1306_Init(&hi2c1) != 0 || ssd1306_Init(&hi2c2) != 0) {
       Error_Handler();
@@ -138,6 +142,8 @@ int main(void)
   HAL_Delay(2000);
 
   ball_x_pos = player_pos;
+
+  HAL_TIM_Base_Start_IT(&htim3);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -359,6 +365,51 @@ static void MX_I2C2_Init(void)
 }
 
 /**
+  * @brief TIM3 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM3_Init(void)
+{
+
+  /* USER CODE BEGIN TIM3_Init 0 */
+
+  /* USER CODE END TIM3_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM3_Init 1 */
+
+  /* USER CODE END TIM3_Init 1 */
+  htim3.Instance = TIM3;
+  htim3.Init.Prescaler = 255;
+  htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim3.Init.Period = 65535;
+  htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim3, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM3_Init 2 */
+
+  /* USER CODE END TIM3_Init 2 */
+
+}
+
+/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -496,6 +547,21 @@ void win_check() {
 	ball_y_pos = 32;
 	ball_x_speed = 0;
 	ball_y_speed = -1;
+}
+
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+	if (htim == &htim3) {
+		if (multiplier >= 1) {
+			if (score >= multiplier * TIME_PENALTY)
+				score -= multiplier * TIME_PENALTY;
+			else
+				score = 0;
+		}
+
+		secondary_screen_changed = 1;
+	}
 }
 /* USER CODE END 4 */
 
