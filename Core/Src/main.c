@@ -64,7 +64,7 @@ volatile uint8_t time_since_last_y_bounce = 10;
 volatile uint8_t time_since_last_brick_break = 10;
 
 volatile uint32_t score = 0;
-volatile float multiplier = 1.0f;
+volatile float multiplier = 0.5f;
 
 uint8_t bricks[BRICK_COUNT];
 /* USER CODE END PV */
@@ -107,7 +107,8 @@ int main(void)
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
-  for (uint8_t i=0; i < BRICK_COUNT; i++)
+  bricks[0] = 0x00;
+  for (uint8_t i=1; i < BRICK_COUNT; i++)
 	  bricks[i] = 0xFF;
   /* USER CODE END SysInit */
 
@@ -395,7 +396,6 @@ void calculate_ball_speed() {
 				ball_y_speed = 1;
 
 			ball_x_speed = ball_x_speed * multiplier;
-			ball_y_speed = ball_y_speed * multiplier;
 		}
 	}
 }
@@ -443,6 +443,9 @@ void brick_check() {
 			// Reset the cool-down
 			time_since_last_brick_break = 0;
 
+			// Check for win
+			win_check();
+
 			// Check if the ball is not falling and can be made to fall
 			if (!(time_since_last_y_bounce > 2 && ball_y_speed > 0))
 				continue;
@@ -452,6 +455,32 @@ void brick_check() {
 			ball_y_speed = ball_y_speed * (-1);
 		}
 	}
+}
+
+void win_check() {
+
+	// Sweep all brick rows
+	for (uint8_t brick_row = 1; brick_row < BRICK_COUNT; brick_row++) {
+
+		// Check if any row has at least one brick- if yes, stop checking for win
+		if (bricks[brick_row] != 0x00) {
+			return;
+		}
+	}
+
+	// Rebuild the bricks
+	for (uint8_t brick_row = 1; brick_row < BRICK_COUNT; brick_row++) {
+		bricks[brick_row] = 0xFF;
+	}
+
+	// Increase the score/speed multiplier
+	multiplier += 0.5f;
+
+	// Reset the ball position and speed
+	ball_x_pos = player_pos;
+	ball_y_pos = 32;
+	ball_x_speed = 0;
+	ball_y_speed = -1;
 }
 /* USER CODE END 4 */
 
