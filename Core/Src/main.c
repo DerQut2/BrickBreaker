@@ -419,7 +419,7 @@ void brick_check() {
 		for (uint8_t brick=0; brick<8; brick++) {
 
 			// Check if a given brick exists
-			if (!bricks[brick_row] & (1 << brick))
+			if (!(bricks[brick_row] & (1 << brick)))
 				continue;
 
 			// Check if ball x position aligns with the brick
