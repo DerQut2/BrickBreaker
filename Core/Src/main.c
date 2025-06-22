@@ -592,6 +592,10 @@ void calculate_ball_speed() {
 
 			ball_x_speed = ball_x_speed * multiplier;
 			current_sound = BOUNCE;
+
+			if (ball_x_speed == 0) {
+				ball_x_speed = 1;
+			}
 		}
 	}
 }
