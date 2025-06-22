@@ -49,6 +49,7 @@ ADC_HandleTypeDef hadc1;
 I2C_HandleTypeDef hi2c1;
 I2C_HandleTypeDef hi2c2;
 
+TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim4;
 
@@ -75,6 +76,8 @@ volatile uint8_t lives = LIFE_COUNT;
 
 volatile uint8_t current_sound = NONE;
 
+volatile uint8_t has_already_played_lose_sound = 0;
+
 uint8_t bricks[BRICK_COUNT];
 /* USER CODE END PV */
 
@@ -86,6 +89,7 @@ static void MX_ADC1_Init(void);
 static void MX_I2C2_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_TIM4_Init(void);
+static void MX_TIM2_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -130,6 +134,7 @@ int main(void)
   MX_I2C2_Init();
   MX_TIM3_Init();
   MX_TIM4_Init();
+  MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
   if (ssd1306_Init(&hi2c1) != 0 || ssd1306_Init(&hi2c2) != 0) {
       Error_Handler();
@@ -150,6 +155,7 @@ int main(void)
 
   ball_x_pos = player_pos;
 
+  HAL_TIM_Base_Start_IT(&htim2);
   HAL_TIM_Base_Start_IT(&htim3);
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
   /* USER CODE END 2 */
@@ -382,6 +388,51 @@ static void MX_I2C2_Init(void)
 }
 
 /**
+  * @brief TIM2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM2_Init(void)
+{
+
+  /* USER CODE BEGIN TIM2_Init 0 */
+
+  /* USER CODE END TIM2_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM2_Init 1 */
+
+  /* USER CODE END TIM2_Init 1 */
+  htim2.Instance = TIM2;
+  htim2.Init.Prescaler = 0;
+  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim2.Init.Period = 95999999;
+  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM2_Init 2 */
+
+  /* USER CODE END TIM2_Init 2 */
+
+}
+
+/**
   * @brief TIM3 Initialization Function
   * @param None
   * @retval None
@@ -556,9 +607,18 @@ void kill_check() {
 			ball_x_pos = player_pos;
 			ball_x_speed = 0;
 			ball_y_speed = -1;
+
+			// Play the DEATH sound
+			current_sound = DEATH;
 		} else {
 			ball_x_speed = 0;
 			ball_y_speed = 0;
+
+			// Play the LOSE sound
+			if (!has_already_played_lose_sound) {
+				current_sound = LOSE;
+				has_already_played_lose_sound = 1;
+			}
 		}
 
 	}
@@ -646,12 +706,16 @@ void win_check() {
 
 	// Reward the player
 	score += 100;
+
+	// Play the win sound
+	current_sound = WIN;
 }
 
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-	if (htim == &htim3) {
+	// Decrement score each second
+	if (htim == &htim2) {
 		if (multiplier >= 1 && lives > 0) {
 			if (score >= multiplier * TIME_PENALTY)
 				score -= multiplier * TIME_PENALTY;
@@ -660,13 +724,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		}
 
 		secondary_screen_changed = 1;
+	}
 
+	// Play the given sound
+	if (htim == &htim3) {
 		switch (current_sound) {
-		case NONE:
-			TIM4->ARR = 65535;
-			TIM4->CCR1 = 0;
-			TIM4->PSC = 0;
-			break;
 
 		case BOUNCE:
 			TIM4->ARR = 61184;
@@ -684,6 +746,18 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 			TIM4->ARR = 48581;
 			TIM4->CCR1 = 24291;
 			TIM4->PSC = 1;
+			break;
+
+		case LOSE:
+			TIM4->ARR = 65039;
+			TIM4->CCR1 = 32520;
+			TIM4->PSC = 17;
+			break;
+
+		case DEATH:
+			TIM4->ARR = 65305;
+			TIM4->CCR1 = 32653;
+			TIM4->PSC = 9;
 			break;
 
 		default:

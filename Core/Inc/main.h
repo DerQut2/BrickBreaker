@@ -41,7 +41,7 @@ enum sounds {
 	BRICK,
 	WIN,
 	LOSE,
-	DIE,
+	DEATH,
 	BOUNCE
 };
 /* USER CODE END ET */
