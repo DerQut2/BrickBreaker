@@ -70,6 +70,8 @@ volatile float multiplier = 0.5f;
 
 volatile uint8_t secondary_screen_changed = 1;
 
+volatile uint8_t lives = LIFE_COUNT;
+
 uint8_t bricks[BRICK_COUNT];
 /* USER CODE END PV */
 
@@ -191,7 +193,11 @@ int main(void)
 	  // Secondary screen drawing
 	  if (secondary_screen_changed) {
 		  ssd1306_Fill(Black);
+
 		  blit_score(score);
+		  blit_multiplier(multiplier);
+		  blit_hearts(lives, LIFE_COUNT);
+
 		  ssd1306_UpdateScreen(&hi2c2);
 		  secondary_screen_changed = 0;
 	  }
@@ -438,6 +444,9 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 
 
 void calculate_ball_speed() {
+	if (!lives)
+		return;
+
 	if (((ball_x_pos > SSD1306_WIDTH-4 && ball_x_speed > 0) || (ball_x_pos < 4 && ball_x_speed < 0)) && time_since_last_x_bounce > 5) {
 		ball_x_speed = ball_x_speed * (-1);
 		time_since_last_x_bounce = 0;
@@ -464,10 +473,20 @@ void calculate_ball_speed() {
 
 void kill_check() {
 	if ((ball_y_pos < 17 && !(ball_x_pos > player_pos-16 && ball_x_pos < player_pos+16)) || (ball_y_pos < 10)) {
-		ball_y_pos = 32;
-		ball_x_pos = player_pos;
-		ball_x_speed = 0;
-		ball_y_speed = -1;
+
+		if (lives > 0)
+			lives--;
+
+		if (lives > 0) {
+			ball_y_pos = 32;
+			ball_x_pos = player_pos;
+			ball_x_speed = 0;
+			ball_y_speed = -1;
+		} else {
+			ball_x_speed = 0;
+			ball_y_speed = 0;
+		}
+
 	}
 }
 
@@ -556,7 +575,7 @@ void win_check() {
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 	if (htim == &htim3) {
-		if (multiplier >= 1) {
+		if (multiplier >= 1 && lives > 0) {
 			if (score >= multiplier * TIME_PENALTY)
 				score -= multiplier * TIME_PENALTY;
 			else

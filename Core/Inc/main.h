@@ -42,6 +42,8 @@ extern "C" {
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
 #define BRICK_COUNT 5
+#define LIFE_COUNT 3
+
 #define BRICK_REWARD 10
 #define TIME_PENALTY 1
 /* USER CODE END EC */

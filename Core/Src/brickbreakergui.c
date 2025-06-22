@@ -71,3 +71,117 @@ void blit_score(uint16_t score) {
 	ssd1306_SetCursor(SSD1306_WIDTH - 16 * (characters+1), 32);
 	ssd1306_WriteString(buffer, Font_16x26, White);
 }
+
+void blit_multiplier(float multiplier) {
+	char buffer[16];
+	uint8_t characters = sprintf(buffer, "MULT: x%.1f", multiplier);
+	ssd1306_SetCursor(SSD1306_WIDTH - 7 * (characters+1), 1);
+	ssd1306_WriteString(buffer, Font_7x10, White);
+}
+
+void blit_hearts(uint8_t lives, uint8_t lives_max) {
+	for (uint8_t heart = 0; heart < lives_max; heart++) {
+		ssd1306_DrawPixel(2 + heart*14, 0, White);
+		ssd1306_DrawPixel(3 + heart*14, 0, White);
+		ssd1306_DrawPixel(7 + heart*14, 0, White);
+		ssd1306_DrawPixel(8 + heart*14, 0, White);
+
+		ssd1306_DrawPixel(1 + heart*14, 1, White);
+		ssd1306_DrawPixel(4 + heart*14, 1, White);
+		ssd1306_DrawPixel(6 + heart*14, 1, White);
+		ssd1306_DrawPixel(9 + heart*14, 1, White);
+
+		ssd1306_DrawPixel(0 + heart*14, 2, White);
+		ssd1306_DrawPixel(5 + heart*14, 2, White);
+		ssd1306_DrawPixel(10 + heart*14, 2, White);
+
+		ssd1306_DrawPixel(0 + heart*14, 3, White);
+		ssd1306_DrawPixel(10 + heart*14, 3, White);
+
+		ssd1306_DrawPixel(0 + heart*14, 4, White);
+		ssd1306_DrawPixel(10 + heart*14, 4, White);
+
+		ssd1306_DrawPixel(0 + heart*14, 5, White);
+		ssd1306_DrawPixel(10 + heart*14, 5, White);
+
+		ssd1306_DrawPixel(1 + heart*14, 6, White);
+		ssd1306_DrawPixel(9 + heart*14, 6, White);
+
+		ssd1306_DrawPixel(2 + heart*14, 7, White);
+		ssd1306_DrawPixel(8 + heart*14, 7, White);
+
+		ssd1306_DrawPixel(3 + heart*14, 8, White);
+		ssd1306_DrawPixel(7 + heart*14, 8, White);
+
+		ssd1306_DrawPixel(4 + heart*14, 9, White);
+		ssd1306_DrawPixel(6 + heart*14, 9, White);
+
+		ssd1306_DrawPixel(5 + heart*14, 10, White);
+
+		if (heart < lives) {
+			ssd1306_DrawPixel(2 + heart*14, 1, White);
+			ssd1306_DrawPixel(3 + heart*14, 1, White);
+			ssd1306_DrawPixel(7 + heart*14, 1, White);
+			ssd1306_DrawPixel(8 + heart*14, 1, White);
+
+			ssd1306_DrawPixel(1 + heart*14, 2, White);
+			ssd1306_DrawPixel(2 + heart*14, 2, White);
+			ssd1306_DrawPixel(3 + heart*14, 2, White);
+			ssd1306_DrawPixel(4 + heart*14, 2, White);
+			ssd1306_DrawPixel(6 + heart*14, 2, White);
+			ssd1306_DrawPixel(7 + heart*14, 2, White);
+			ssd1306_DrawPixel(8 + heart*14, 2, White);
+			ssd1306_DrawPixel(9 + heart*14, 2, White);
+
+			ssd1306_DrawPixel(1 + heart*14, 3, White);
+			ssd1306_DrawPixel(2 + heart*14, 3, White);
+			ssd1306_DrawPixel(3 + heart*14, 3, White);
+			ssd1306_DrawPixel(4 + heart*14, 3, White);
+			ssd1306_DrawPixel(5 + heart*14, 3, White);
+			ssd1306_DrawPixel(6 + heart*14, 3, White);
+			ssd1306_DrawPixel(7 + heart*14, 3, White);
+			ssd1306_DrawPixel(8 + heart*14, 3, White);
+			ssd1306_DrawPixel(9 + heart*14, 3, White);
+
+			ssd1306_DrawPixel(1 + heart*14, 4, White);
+			ssd1306_DrawPixel(2 + heart*14, 4, White);
+			ssd1306_DrawPixel(3 + heart*14, 4, White);
+			ssd1306_DrawPixel(4 + heart*14, 4, White);
+			ssd1306_DrawPixel(5 + heart*14, 4, White);
+			ssd1306_DrawPixel(6 + heart*14, 4, White);
+			ssd1306_DrawPixel(7 + heart*14, 4, White);
+			ssd1306_DrawPixel(8 + heart*14, 4, White);
+			ssd1306_DrawPixel(9 + heart*14, 4, White);
+
+			ssd1306_DrawPixel(1 + heart*14, 5, White);
+			ssd1306_DrawPixel(2 + heart*14, 5, White);
+			ssd1306_DrawPixel(3 + heart*14, 5, White);
+			ssd1306_DrawPixel(4 + heart*14, 5, White);
+			ssd1306_DrawPixel(5 + heart*14, 5, White);
+			ssd1306_DrawPixel(6 + heart*14, 5, White);
+			ssd1306_DrawPixel(7 + heart*14, 5, White);
+			ssd1306_DrawPixel(8 + heart*14, 5, White);
+			ssd1306_DrawPixel(9 + heart*14, 5, White);
+
+			ssd1306_DrawPixel(2 + heart*14, 6, White);
+			ssd1306_DrawPixel(3 + heart*14, 6, White);
+			ssd1306_DrawPixel(4 + heart*14, 6, White);
+			ssd1306_DrawPixel(5 + heart*14, 6, White);
+			ssd1306_DrawPixel(6 + heart*14, 6, White);
+			ssd1306_DrawPixel(7 + heart*14, 6, White);
+			ssd1306_DrawPixel(8 + heart*14, 6, White);
+
+			ssd1306_DrawPixel(3 + heart*14, 7, White);
+			ssd1306_DrawPixel(4 + heart*14, 7, White);
+			ssd1306_DrawPixel(5 + heart*14, 7, White);
+			ssd1306_DrawPixel(6 + heart*14, 7, White);
+			ssd1306_DrawPixel(7 + heart*14, 7, White);
+
+			ssd1306_DrawPixel(4 + heart*14, 8, White);
+			ssd1306_DrawPixel(5 + heart*14, 8, White);
+			ssd1306_DrawPixel(6 + heart*14, 8, White);
+
+			ssd1306_DrawPixel(5 + heart*14, 9, White);
+		}
+	}
+}
