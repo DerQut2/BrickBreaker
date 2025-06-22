@@ -50,6 +50,7 @@ I2C_HandleTypeDef hi2c1;
 I2C_HandleTypeDef hi2c2;
 
 TIM_HandleTypeDef htim3;
+TIM_HandleTypeDef htim4;
 
 /* USER CODE BEGIN PV */
 volatile uint8_t player_pos = 0;
@@ -72,6 +73,8 @@ volatile uint8_t secondary_screen_changed = 1;
 
 volatile uint8_t lives = LIFE_COUNT;
 
+volatile uint8_t current_sound = NONE;
+
 uint8_t bricks[BRICK_COUNT];
 /* USER CODE END PV */
 
@@ -82,6 +85,7 @@ static void MX_I2C1_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_I2C2_Init(void);
 static void MX_TIM3_Init(void);
+static void MX_TIM4_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -125,6 +129,7 @@ int main(void)
   MX_ADC1_Init();
   MX_I2C2_Init();
   MX_TIM3_Init();
+  MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
   if (ssd1306_Init(&hi2c1) != 0 || ssd1306_Init(&hi2c2) != 0) {
       Error_Handler();
@@ -146,6 +151,7 @@ int main(void)
   ball_x_pos = player_pos;
 
   HAL_TIM_Base_Start_IT(&htim3);
+  HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -229,7 +235,12 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
+  RCC_OscInitStruct.PLL.PLLM = 16;
+  RCC_OscInitStruct.PLL.PLLN = 192;
+  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
+  RCC_OscInitStruct.PLL.PLLQ = 4;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
@@ -239,12 +250,12 @@ void SystemClock_Config(void)
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_3) != HAL_OK)
   {
     Error_Handler();
   }
@@ -416,6 +427,65 @@ static void MX_TIM3_Init(void)
 }
 
 /**
+  * @brief TIM4 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM4_Init(void)
+{
+
+  /* USER CODE BEGIN TIM4_Init 0 */
+
+  /* USER CODE END TIM4_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+  TIM_OC_InitTypeDef sConfigOC = {0};
+
+  /* USER CODE BEGIN TIM4_Init 1 */
+
+  /* USER CODE END TIM4_Init 1 */
+  htim4.Instance = TIM4;
+  htim4.Init.Prescaler = 0;
+  htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim4.Init.Period = 16000;
+  htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
+  if (HAL_TIM_Base_Init(&htim4) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim4, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_Init(&htim4) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim4, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigOC.OCMode = TIM_OCMODE_PWM1;
+  sConfigOC.Pulse = 8000;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  if (HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM4_Init 2 */
+
+  /* USER CODE END TIM4_Init 2 */
+  HAL_TIM_MspPostInit(&htim4);
+
+}
+
+/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -429,6 +499,7 @@ static void MX_GPIO_Init(void)
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
+  __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 
@@ -450,11 +521,13 @@ void calculate_ball_speed() {
 	if (((ball_x_pos > SSD1306_WIDTH-4 && ball_x_speed > 0) || (ball_x_pos < 4 && ball_x_speed < 0)) && time_since_last_x_bounce > 5) {
 		ball_x_speed = ball_x_speed * (-1);
 		time_since_last_x_bounce = 0;
+		current_sound = BOUNCE;
 	}
 
 	if (((ball_y_pos > SSD1306_HEIGHT-4 && ball_y_speed > 0) || (ball_y_pos < 21 && ball_y_speed < 0 && (ball_x_pos > player_pos-12 && ball_x_pos < player_pos+12))) && time_since_last_y_bounce > 5) {
 		ball_y_speed = ball_y_speed * (-1);
 		time_since_last_y_bounce = 0;
+		current_sound = BOUNCE;
 
 		if (ball_y_pos < 21) {
 			ball_x_speed = (uint8_t) ((ball_x_pos - player_pos)/2);
@@ -467,6 +540,7 @@ void calculate_ball_speed() {
 				ball_y_speed = 1;
 
 			ball_x_speed = ball_x_speed * multiplier;
+			current_sound = BOUNCE;
 		}
 	}
 }
@@ -528,6 +602,9 @@ void brick_check() {
 			// Reset the cool-down
 			time_since_last_brick_break = 0;
 
+			// Play the brick sounds
+			current_sound = BRICK;
+
 			// Check for win
 			win_check();
 
@@ -583,6 +660,40 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		}
 
 		secondary_screen_changed = 1;
+
+		switch (current_sound) {
+		case NONE:
+			TIM4->ARR = 65535;
+			TIM4->CCR1 = 0;
+			TIM4->PSC = 0;
+			break;
+
+		case BOUNCE:
+			TIM4->ARR = 61184;
+			TIM4->CCR1 = 30592;
+			TIM4->PSC = 2;
+			break;
+
+		case BRICK:
+			TIM4->ARR = 54513;
+			TIM4->CCR1 = 27257;
+			TIM4->PSC = 2;
+			break;
+
+		case WIN:
+			TIM4->ARR = 48581;
+			TIM4->CCR1 = 24291;
+			TIM4->PSC = 1;
+			break;
+
+		default:
+			TIM4->ARR = 65535;
+			TIM4->CCR1 = 0;
+			TIM4->PSC = 0;
+		}
+
+		current_sound = NONE;
+
 	}
 }
 /* USER CODE END 4 */
