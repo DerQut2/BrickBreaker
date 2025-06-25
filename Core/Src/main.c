@@ -543,6 +543,7 @@ static void MX_TIM4_Init(void)
   */
 static void MX_GPIO_Init(void)
 {
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
   /* USER CODE BEGIN MX_GPIO_Init_1 */
 
   /* USER CODE END MX_GPIO_Init_1 */
@@ -551,6 +552,17 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
+  __HAL_RCC_GPIOC_CLK_ENABLE();
+
+  /*Configure GPIO pin : PC7 */
+  GPIO_InitStruct.Pin = GPIO_PIN_7;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 
@@ -603,8 +615,10 @@ void calculate_ball_speed() {
 void kill_check() {
 	if ((ball_y_pos < 17 && !(ball_x_pos > player_pos-16 && ball_x_pos < player_pos+16)) || (ball_y_pos < 10)) {
 
-		if (lives > 0)
+		if (lives > 0) {
 			lives--;
+			secondary_screen_changed = 1;
+		}
 
 		if (lives > 0) {
 			ball_y_pos = 32;
@@ -713,6 +727,9 @@ void win_check() {
 
 	// Play the win sound
 	current_sound = WIN;
+
+	// Refresh the secondary screen
+	secondary_screen_changed = 1;
 }
 
 
@@ -773,6 +790,30 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		current_sound = NONE;
 
 	}
+}
+
+// External interrupt handler (user button)
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+    if(GPIO_Pin == GPIO_PIN_7) // If The INT Source Is EXTI Line7 (C7 Pin)
+    {
+    	// Reset values shown on the secondary screen
+    	multiplier = 0.5f;
+    	lives = LIFE_COUNT;
+    	score = 0;
+    	secondary_screen_changed = 1;
+
+    	// Reset ball parameters
+    	ball_x_pos = player_pos;
+		ball_y_pos = 32;
+		ball_x_speed = 0;
+		ball_y_speed = -1;
+
+		// Reset the bricks
+		bricks[0] = 0x00;
+		for (uint8_t i=1; i < BRICK_COUNT; i++)
+		  bricks[i] = 0xFF;
+    }
 }
 /* USER CODE END 4 */
 
