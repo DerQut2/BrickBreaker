@@ -200,6 +200,10 @@ int main(void)
 
 	  blit_bricks(bricks, BRICK_COUNT);
 
+	  if (!lives) {
+		  blit_lose_message();
+	  }
+
 	  ssd1306_UpdateScreen(&hi2c1);
 
 	  // Secondary screen drawing
@@ -813,6 +817,9 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 		bricks[0] = 0x00;
 		for (uint8_t i=1; i < BRICK_COUNT; i++)
 		  bricks[i] = 0xFF;
+
+		// Play a sounds
+		current_sound = DEATH;
     }
 }
 /* USER CODE END 4 */

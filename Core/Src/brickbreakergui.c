@@ -186,6 +186,7 @@ void blit_hearts(uint8_t lives, uint8_t lives_max) {
 	}
 }
 
-void blit_lose_message(uint8_t lives) {
-
+void blit_lose_message() {
+	ssd1306_SetCursor(26, 27);
+	ssd1306_WriteString("): peap noh", Font_7x10, White);
 }
