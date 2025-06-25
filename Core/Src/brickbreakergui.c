@@ -185,3 +185,7 @@ void blit_hearts(uint8_t lives, uint8_t lives_max) {
 		}
 	}
 }
+
+void blit_lose_message(uint8_t lives) {
+
+}
