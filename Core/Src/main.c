@@ -54,31 +54,44 @@ TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim4;
 
 /* USER CODE BEGIN PV */
+
+// Pozycja paletki (na podstawie ADC)
 volatile uint8_t player_pos = 0;
 
+// Pozycja piłki
 volatile int16_t ball_x_pos = 0;
 volatile int16_t ball_y_pos = 32;
 
+// Składowe prędkości piłki
 volatile int8_t ball_x_speed = 0;
 volatile int8_t ball_y_speed = -1;
 
+// Cooldown odbić od ścian (ochrona przed zaklinowaniem)
 volatile uint8_t time_since_last_x_bounce = 10;
 volatile uint8_t time_since_last_y_bounce = 10;
 
+// Cooldown zniszczeń cegiełek (prewencja przed zniszczeniem kilku jednocześnie przed odbiciem)
 volatile uint8_t time_since_last_brick_break = 10;
 
+// Wynik
 volatile uint16_t score = 0;
 volatile float multiplier = 0.5f;
 
+// Flaga wymuszenia odświeżenia drugiego ekranu
 volatile uint8_t secondary_screen_changed = 1;
 
+// Ilość żyć
 volatile uint8_t lives = LIFE_COUNT;
 
+// Kolejny dźwięk do odtworzenia
 volatile uint8_t current_sound = NONE;
 
+// Prewencja przed ciągłym odtwarzaniem dźwięku po przegranej
 volatile uint8_t has_already_played_lose_sound = 0;
 
+// Tablica cegiełek
 uint8_t bricks[BRICK_COUNT];
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -168,9 +181,11 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 
+      // Obliczenie pozycji piłki
 	  ball_x_pos += ball_x_speed;
 	  ball_y_pos += ball_y_speed;
 
+      // Uniemożliwienie wyjścia piłki poza obrys ekranu
 	  if (ball_x_pos < 0)
 		  ball_x_pos = 0;
 
@@ -183,16 +198,17 @@ int main(void)
 	  if (ball_y_pos > SSD1306_HEIGHT)
 		  ball_y_pos = SSD1306_HEIGHT;
 
+      // Inkrementacjia wartości zapewniających cooldown
 	  time_since_last_x_bounce++;
 	  time_since_last_y_bounce++;
-
 	  time_since_last_brick_break++;
 
+      // Obliczenia
 	  calculate_ball_speed();
 	  brick_check();
 	  kill_check();
 
-	  // Main screen drawing
+	  // Rysowanie ekranu głównego
 	  ssd1306_Fill(Black);
 
 	  blit_palette((uint8_t) (player_pos), 12);
@@ -206,7 +222,7 @@ int main(void)
 
 	  ssd1306_UpdateScreen(&hi2c1);
 
-	  // Secondary screen drawing
+	  // Rysowanie drugiego ekranu
 	  if (secondary_screen_changed) {
 		  ssd1306_Fill(Black);
 
@@ -218,6 +234,7 @@ int main(void)
 		  secondary_screen_changed = 0;
 	  }
 
+      // Start konwersji ADC
 	  HAL_ADC_Start_IT(&hadc1);
 	  HAL_Delay(10);
 
@@ -339,7 +356,7 @@ static void MX_I2C1_Init(void)
 
   /* USER CODE END I2C1_Init 1 */
   hi2c1.Instance = I2C1;
-  hi2c1.Init.ClockSpeed = 100000;
+  hi2c1.Init.ClockSpeed = 400000;
   hi2c1.Init.DutyCycle = I2C_DUTYCYCLE_2;
   hi2c1.Init.OwnAddress1 = 0;
   hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
@@ -373,7 +390,7 @@ static void MX_I2C2_Init(void)
 
   /* USER CODE END I2C2_Init 1 */
   hi2c2.Instance = I2C2;
-  hi2c2.Init.ClockSpeed = 100000;
+  hi2c2.Init.ClockSpeed = 400000;
   hi2c2.Init.DutyCycle = I2C_DUTYCYCLE_2;
   hi2c2.Init.OwnAddress1 = 0;
   hi2c2.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
@@ -630,13 +647,13 @@ void kill_check() {
 			ball_x_speed = 0;
 			ball_y_speed = -1;
 
-			// Play the DEATH sound
+			// Odtwórz dźwięk DEATH
 			current_sound = DEATH;
 		} else {
 			ball_x_speed = 0;
 			ball_y_speed = 0;
 
-			// Play the LOSE sound
+			// Odtwórz dźwięk LOSE
 			if (!has_already_played_lose_sound) {
 				current_sound = LOSE;
 				has_already_played_lose_sound = 1;
@@ -648,53 +665,53 @@ void kill_check() {
 
 void brick_check() {
 
-	// Sweep all brick rows
+	// Przemiatanie wszystkich rzędów cegiełek
 	for (uint8_t brick_row=0; brick_row<BRICK_COUNT; brick_row++) {
 
-		// Check if brick row contains any bricks
+		// Sprawdzenie czy rząd zawiera cegiełki
 		if (!bricks[brick_row])
 			continue;
 
-		// Sweep all bricks in a given row
+		// Przemiatanie wszystkich cegiełek w rzędzie
 		for (uint8_t brick=0; brick<8; brick++) {
 
-			// Check if a given brick exists
+			// Sprawdzenie czy wybrana cegiełka istnieje
 			if (!(bricks[brick_row] & (1 << brick)))
 				continue;
 
-			// Check if ball x position aligns with the brick
+			// Sprawdzenie czy pozycja X piłki pokrywa się z cegiełką
 			if (!(ball_x_pos+2 > brick * BRICK_X_SIZE && ball_x_pos < (brick+1) * BRICK_X_SIZE+2))
 				continue;
 
-			// Check if ball y position aligns with the brick
+			// Sprawdzenie czy pozycja Y piłki pokrywa się z cegiełką
 			if (!(ball_y_pos-2 < SSD1306_HEIGHT - brick_row * BRICK_Y_SIZE && ball_y_pos+2 > SSD1306_HEIGHT - (brick_row+1) * BRICK_Y_SIZE))
 				continue;
 
-			// Check if the ball can break the brick (cool-down)
+			// Sprawdzenie czy piłka jest w stanie zniszczyć cegiełkę (cool-down)
 			if (!(time_since_last_brick_break>5 || (ball_y_speed < 0 && time_since_last_brick_break > 0)))
 				continue;
 
-			// Remove the brick (XOR with 1 sets to 0- the given value was already asserted to be 1)
+			// Usunięcie cegły (XOR z wartością 1 ustawia  0- obecna wartość cegiełki jest równa 1, sprawdzono wyżej)
 			bricks[brick_row] = bricks[brick_row] ^ (1<<brick);
 
-			// Increase score
+			// Zwiększenie wyniku
 			score += BRICK_REWARD * multiplier;
 			secondary_screen_changed = 1;
 
-			// Reset the cool-down
+			// Reset cool-down
 			time_since_last_brick_break = 0;
 
-			// Play the brick sounds
+			// Wybranie dźwięku BRICK do późniejszego zagrania
 			current_sound = BRICK;
 
-			// Check for win
+			// Sprawdzenie, czy gracz wygrał planszę
 			win_check();
 
-			// Check if the ball is not falling and can be made to fall
+			// Sprawdzenie czy piłka spada oraz czy może zostać zmuszona do spadania
 			if (!(time_since_last_y_bounce > 2 && ball_y_speed > 0))
 				continue;
 
-			// Force the ball to start falling (trigger a y-bounce)
+			// Wymuszenie spadania piłki
 			time_since_last_y_bounce = 0;
 			ball_y_speed = ball_y_speed * (-1);
 		}
